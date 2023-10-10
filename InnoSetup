@@ -1,0 +1,20 @@
+; this is an Inno Setup script, used to create the installer for Windows
+; everything is a direct path on my computer, so to modify the installer to compile it on your own computer you would need to get the executables and input the correct path
+
+[Setup]
+PrivilegesRequired=admin
+AppName=SkedAI User Server
+AppVersion=1.0
+ArchitecturesInstallIn64BitMode=x64
+DefaultDirName={commonpf}\SkedAI User Server
+UninstallDisplayName=Uninstall SkedAI User Server
+
+[Files]
+Source: "C:\Users\jack8\Documents\PyCharm\SkedAIUserServerInstaller\main.exe"; DestDir: "{app}"
+Source: "C:\Users\jack8\Documents\PyCharm\SkedAIUserServerInstaller\mod_sat_runner"; DestDir: "{app}"
+
+[Run]
+Filename: "{sys}\sc.exe"; Parameters: "create ""SkedAI User Server"" binPath= ""{app}\main.exe"""
+
+[UninstallRun]
+Filename: "{sys}\sc.exe"; Parameters: "delete ""SkedAI User Server"""; RunOnceId: "DeleteService"  
