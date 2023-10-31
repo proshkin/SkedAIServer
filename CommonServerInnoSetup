@@ -1,0 +1,24 @@
+; this is an Inno Setup script, used to create the installer for Windows
+; everything is a direct path on my computer, so to modify the installer to compile it on your own computer you would need to get the executables and input the correct path
+
+[Setup]
+PrivilegesRequired=admin
+AppName=SkedAI Common Server
+AppVersion=1.0
+ArchitecturesInstallIn64BitMode=x64
+DefaultDirName={commonpf}\SkedAI Common Server
+UninstallDisplayName=Uninstall SkedAI Common Server
+OutputBaseFilename=SkedAICommonServerInstaller
+
+[Files]
+Source: "C:\Users\jack8\Documents\PyCharm\SkedAIUserServerInstaller\main.exe"; DestDir: "{app}"
+Source: "C:\Users\jack8\Documents\PyCharm\SkedAIUserServerInstaller\mod_sat_runner"; DestDir: "{app}"
+Source: "C:\Users\jack8\Downloads\nssm-2.24\nssm-2.24\win64\nssm.exe"; DestDir: "{app}"
+
+[Run]
+Filename: "{app}\nssm.exe"; Parameters: "install SkedAICommonServer ""{app}\main.exe"""; Description: "Installing the service..."; Flags: runhidden
+Filename: "{app}\nssm.exe"; Parameters: "start SkedAICommonServer"; Description: "Starting the service..."; Flags: runhidden
+
+[UninstallRun]
+Filename: "{app}\nssm.exe"; Parameters: "stop SkedAICommonServer"; Flags: runhidden
+Filename: "{app}\nssm.exe"; Parameters: "remove SkedAICommonServer confirm"; Flags: runhidden
