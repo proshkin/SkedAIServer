@@ -1,4 +1,4 @@
-; this is an Inno Setup script, used to create the installer for Windows
+; this is an Inno Setup script, used to create the Common Server installer for Windows
 ; everything is a direct path on my computer, so to modify the installer to compile it on your own computer you would need to get the executables and input the correct path
 
 [Setup]
