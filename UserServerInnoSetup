@@ -1,9 +1,6 @@
-; this is an Inno Setup script, used to create the User Server installer for Windows
-; everything is a direct path on my computer, so to modify the installer to compile it on your own computer you would need to get the executables and input the correct path
-
 [Setup]
 PrivilegesRequired=admin
-AppName=SkedAI Common Server
+AppName=SkedAI User Server
 AppVersion=1.0
 ArchitecturesInstallIn64BitMode=x64
 DefaultDirName={commonpf}\SkedAI User Server
@@ -12,14 +9,60 @@ OutputBaseFilename=SkedAIUserServerInstaller
 
 [Files]
 Source: "C:\Users\jack8\Documents\PyCharm\SkedAIUserServerInstaller\main.exe"; DestDir: "{app}"
-Source: "C:\Users\jack8\Documents\PyCharm\SkedAIUserServerAuth\GoogleAuthenticator2-win32-x64\GoogleAuthenticator.exe"; DestDir: "{app}"
-Source: "C:\Users\jack8\Documents\PyCharm\SkedAIUserServerInstaller\mod_sat_runner"; DestDir: "{app}"
+Source: "C:\Users\jack8\NewOrTools\or-tools\temp_cpp\mod_sat_runner\build\Release\bin\mod_sat_runner.exe"; DestDir: "{app}"
 Source: "C:\Users\jack8\Downloads\nssm-2.24\nssm-2.24\win64\nssm.exe"; DestDir: "{app}"
+Source: "C:\Users\jack8\Documents\PyCharm\SkedAIAuthenticator\build\SkedAuthenticator.exe"; DestDir: "{app}"
+Source: "C:\Users\jack8\Documents\PyCharm\SkedAIUserServerInstaller\version.txt"; DestDir: "{userappdata}\Node Server"; Flags: ignoreversion createallsubdirs recursesubdirs
+Source: "C:\Users\jack8\Documents\PyCharm\SkedAIUserServerInstaller\token.txt"; DestDir: "{userappdata}\Node Server"; Flags: ignoreversion createallsubdirs recursesubdirs
 
 [Run]
 Filename: "{app}\nssm.exe"; Parameters: "install SkedAIUserServer ""{app}\main.exe"""; Description: "Installing the service..."; Flags: runhidden
-Filename: "{app}\nssm.exe"; Parameters: "start SkedAIUserServer"; Description: "Starting the service..."; Flags: runhidden
+Filename: "{app}\nssm.exe"; Parameters: "set SkedAIUserServer AppDirectory ""{app}"""; Description: "Setting service working directory..."; Flags: runhidden
+; Filename: "{app}\nssm.exe"; Parameters: "start SkedAIUserServer"; Description: "Starting the service..."; Flags: runhidden
+Filename: "{app}\SkedAuthenticator.exe"; Description: "Running SkedAuthenticator"; Flags: runhidden postinstall
 
 [UninstallRun]
-Filename: "{app}\nssm.exe"; Parameters: "stop SkedAIUserServer"; Flags: runhidden
-Filename: "{app}\nssm.exe"; Parameters: "remove SkedAIUserServer confirm"; Flags: runhidden
+Filename: "{app}\nssm.exe"; Parameters: "stop SkedAIUserServer"; Flags: runhidden waituntilterminated
+Filename: "{app}\nssm.exe"; Parameters: "remove SkedAIUserServer confirm"; Flags: runhidden waituntilterminated
+Filename: "cmd.exe"; Parameters: "/C timeout /t 1 /nobreak"; Flags: runhidden;
+
+[Code]
+function InitializeSetup(): Boolean;
+var
+  UninstallAppPath, StopServiceCommand: String;
+  ResultCode: Integer;
+begin
+  Result := True; // Default to true to continue setup
+
+  // Construct the path of the existing uninstaller using {commonpf}
+  UninstallAppPath := AddBackslash(ExpandConstant('{commonpf}\SkedAI User Server')) + 'unins000.exe';
+  if FileExists(UninstallAppPath) then
+  begin
+    // Stop the service before uninstalling
+    StopServiceCommand := 'nssm stop SkedAIUserServer';
+    ShellExec('open', ExpandConstant('{cmd}'), '/C ' + StopServiceCommand, '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+    // Execute the uninstaller
+    Exec(UninstallAppPath, '/SILENT', '', SW_SHOW, ewWaitUntilTerminated, ResultCode);
+    if ResultCode <> 0 then
+    begin
+      MsgBox('Failed to uninstall previous version. Setup will now exit.', mbError, MB_OK);
+      Result := False; // Abort setup if the uninstallation fails
+    end;
+  end;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+    ResultCode: Integer;
+begin
+    // Before installing, stop the service if it is running
+    if CurStep = ssInstall then begin
+        Exec(ExpandConstant('{app}\nssm.exe'), 'stop SkedAIUserServer', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    end;
+
+    // After installation, start the service
+    if CurStep = ssPostInstall then begin
+        Exec(ExpandConstant('{app}\nssm.exe'), 'start SkedAIUserServer', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    end;
+end;
