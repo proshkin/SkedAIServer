@@ -10,6 +10,7 @@ const path = require("path");
 const axios = require("axios");
 const cron = require('node-cron');
 const https = require('https');
+const {randomUUID} = require("node:crypto");
 
 const supabase = createClient('https://jfcurpgmlzlceotuthat.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmY3VycGdtbHpsY2VvdHV0aGF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDUwODQ4ODksImV4cCI6MjAyMDY2MDg4OX0.7rAa3V9obXlEhewdRah4unY0apsEPHWEYXk5OwKYkLI');
 
@@ -169,6 +170,7 @@ async function handleFileChange(path) {
         try {
           let curUser = await authenticateUser(accessToken, refreshToken, supabase);
           checkIfUpdate();
+          addServerIfNewUser();
           return curUser;
         } catch (error) {
           console.error('Authentication error:', error);
@@ -192,6 +194,43 @@ async function authenticateUser(accessToken, refreshToken) {
         return user;
     } catch (error) {
         console.error(error);
+    }
+}
+
+const addServerIfNewUser = async (localServerState) => {
+    macAddress = localServerState.macAddress;
+    ipAddress = localServerState.ipAddress;
+    cpuCores = localServerState.cpuCores;
+
+    const serverFilePath = path.join(nodeFolderPath, 'servers.txt');
+    const prevServer = fs.readFileSync(serverFilePath, 'utf8');
+
+    let {data: server, error} = await supabase
+        .from('servers')
+        .select('server_id')
+        .eq('server_id', prevServer)
+
+    if (error) {
+        console.error('Error fetching servers:', error);
+        return;
+    }
+
+    if (!server || server.length === 0) {
+        let {error} = await supabase
+            .from('servers')
+            .insert([{
+                server_id: randomUUID(),
+                mac_address: macAddress,
+                cpu_cores: cpuCores,
+                ip_address: ipAddress,
+                is_user_server: true,
+                owner_id: userID,
+                version: 0.1
+            }]);
+
+        if (error) {
+            console.error('Error inserting server:', error);
+        }
     }
 }
 
