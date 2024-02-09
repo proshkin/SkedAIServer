@@ -25,10 +25,10 @@ jobs:
         with:
           toolset: 14.3
 
-      - name: Mock Build mod_sat_runner
+      - name: Build mod_sat_runner
         run: |
-          New-Item -ItemType Directory -Force -Path or-tools/temp_cpp/mod_sat_runner/build/bin
-          New-Item -Path or-tools/temp_cpp/mod_sat_runner/build/bin -Name "mod_sat_runner.exe" -ItemType "file"
+          cd or-tools
+          make build SOURCE=examples/cpp/mod_sat_runner.cc
 
       - name: Upload compiled binary as artifact
         uses: actions/upload-artifact@v4
