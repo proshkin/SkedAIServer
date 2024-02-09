@@ -1,23 +1,36 @@
-name: test_v1
+name: Build mod_sat_runner
 
 on: [push]
 
 jobs:
-  native:
-    strategy:
-      matrix:
-        cmake: [
-          {generator: "Visual Studio 17 2022", config: Release, build_target: ALL_BUILD, test_target: RUN_TESTS, install_target: INSTALL},
-        ]
-      fail-fast: false
-    name: Windows • ${{ matrix.cmake.generator }} • C++
+  build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout SkedAIServer repository
+        uses: actions/checkout@v4
+        with:
+          path: 'SkedAIServer'
+      
+      - name: Clone ORTools repository
+        run: git clone -b main https://github.com/google/or-tools or-tools
+        
+      - name: Copy mod_sat_runner.cc to OR-Tools
+        run: Copy-Item SkedAIServer\mod_sat_runner\mod_sat_runner.cc or-tools\examples\cpp
+        
       - name: Install make
+        run: choco install make
+
+      - name: Setup MSVC environment for Visual Studio 2022
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          toolset: 17
+
+      - name: Build mod_sat_runner
         run: |
-          choco install make
-      - name: Check make
+          cd or-tools
+          make build SOURCE=examples/cpp/mod_sat_runner.cc
+
+      - name: Copy binary to final location
         run: |
-          make --version
-          make -G || true
+          New-Item -ItemType Directory -Force -Path SkedAISolver/bin
+          Copy-Item or-tools\temp_cpp\mod_sat_runner\build\bin\mod_sat_runner.exe SkedAISolver/bin
