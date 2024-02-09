@@ -23,7 +23,7 @@ jobs:
       - name: Setup MSVC environment for Visual Studio 2022
         uses: ilammy/msvc-dev-cmd@v1
         with:
-          toolset: 17
+          toolset: 14.3
 
       - name: Build mod_sat_runner
         run: |
