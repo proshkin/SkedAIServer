@@ -30,7 +30,8 @@ jobs:
           cd or-tools
           make build SOURCE=examples/cpp/mod_sat_runner.cc
 
-      - name: Copy binary to final location
-        run: |
-          New-Item -ItemType Directory -Force -Path SkedAISolver/bin
-          Copy-Item or-tools\temp_cpp\mod_sat_runner\build\bin\mod_sat_runner.exe SkedAISolver/bin
+      - name: Upload compiled binary as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: mod_sat_runner-binary
+          path: or-tools/temp_cpp/mod_sat_runner/build/bin/mod_sat_runner.exe
