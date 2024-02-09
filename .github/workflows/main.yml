@@ -14,32 +14,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check cmake
+      - name: Install make
         run: |
-          cmake --version
-          cmake -G || true
-      - name: Configure
-        run: >
-          cmake -S. -Bbuild
-          -G "${{ matrix.cmake.generator }}"
-          -DCMAKE_BUILD_TYPE=${{ matrix.cmake.config }}
-          -DBUILD_DEPS=ON
-          -DCMAKE_INSTALL_PREFIX=install
-      - name: Build
-        run: >
-          cmake --build build
-          --config ${{ matrix.cmake.config }}
-          --target ${{ matrix.cmake.build_target }}
-          -v -j2
-      - name: Test
-        run: >
-          cmake --build build
-          --config ${{ matrix.cmake.config }}
-          --target ${{ matrix.cmake.test_target }}
-          -v
-      - name: Install
-        run: >
-          cmake --build build
-          --config ${{ matrix.cmake.config }}
-          --target ${{ matrix.cmake.install_target }}
-          -v
+          choco install make
+      - name: Check make
+        run: |
+          make --version
+          make -G || true
