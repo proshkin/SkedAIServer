@@ -44,7 +44,6 @@ jobs:
           toolset: 14.3
 
       - name: Build mod_sat_runner
-        if: steps.cache-or-tools.outputs.cache-hit != 'true'
         run: |
           cd or-tools
           make build SOURCE=examples/cpp/mod_sat_runner.cc
