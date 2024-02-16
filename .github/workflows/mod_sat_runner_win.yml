@@ -30,7 +30,6 @@ jobs:
         run: Copy-Item SkedAIServer\mod_sat_runner\mod_sat_runner.cc or-tools/examples\cpp
 
       - name: Ensure Make is installed
-        if: steps.cache-or-tools.outputs.cache-hit != 'true'
         run: |
           $makeInstalled = choco list --local-only | Select-String "make"
           if (-not $makeInstalled) {
@@ -38,7 +37,6 @@ jobs:
           }
 
       - name: Setup MSVC environment for Visual Studio 2022
-        if: steps.cache-or-tools.outputs.cache-hit != 'true'
         uses: ilammy/msvc-dev-cmd@v1
         with:
           toolset: 14.3
