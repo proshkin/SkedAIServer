@@ -16,7 +16,6 @@ jobs:
             or-tools-${{ runner.os }}-
 
       - name: Checkout SkedAIServer repository
-        if: steps.cache-or-tools.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
           path: 'SkedAIServer'
@@ -26,7 +25,6 @@ jobs:
         run: git clone -b main https://github.com/google/or-tools or-tools
         
       - name: Copy mod_sat_runner.cc to OR-Tools
-        if: steps.cache-or-tools.outputs.cache-hit != 'true'
         run: Copy-Item SkedAIServer\mod_sat_runner\mod_sat_runner.cc or-tools/examples\cpp
 
       - name: Ensure Make is installed
