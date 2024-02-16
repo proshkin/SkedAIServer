@@ -34,4 +34,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mod_sat_runner-binary
-          path: or-tools/temp_cpp/mod_sat_runner/build/bin/mod_sat_runner.exe
+          path: or-tools/temp_cpp/mod_sat_runner/build/Release/bin/mod_sat_runner.exe
