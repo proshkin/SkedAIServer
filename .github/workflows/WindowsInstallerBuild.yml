@@ -3,7 +3,7 @@ name: Build Installer with Inno Setup
 on:
   push:
     paths:
-      - 'SkedAIServer/SkedAIUserServerInstallerSilent.iss'
+      - 'SkedAIUserServerInstallerSilent.iss'
 
 jobs:
   build:
