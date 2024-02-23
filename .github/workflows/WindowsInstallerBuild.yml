@@ -20,7 +20,7 @@ jobs:
 
       - name: Compile Installer
         run: |
-          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" SkedAIUserServerInstallerSilent.iss
+          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" SkedAIServer/SkedAIUserServerInstallerSilent.iss
         shell: cmd
         
       - name: Upload Installer as Artifact
