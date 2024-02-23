@@ -14,20 +14,17 @@ jobs:
 
 
       - name: Check for changes in mod_sat_runner.cc
-        id: check_mod_sat_runner
         run: |
           $changed = git diff HEAD~1 --name-only | Select-String -Pattern "mod_sat_runner/mod_sat_runner.cc"
           if ($null -ne $changed) {
-            Write-Host "Change in mod_sat_runner.cc detected."
-            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "MOD_SAT_RUNNER_CHANGED=true" >> $env:GITHUB_ENV
           } else {
-            Write-Host "No change in mod_sat_runner.cc detected."
-            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "MOD_SAT_RUNNER_CHANGED=false" >> $env:GITHUB_ENV
           }
         shell: powershell
 
       - name: Cache OR-Tools Build
-        if: steps.check_mod_sat_runner.outputs.changed == 'true'
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true'
         uses: actions/cache@v4
         with:
           path: SkedAIServer/or-tools
@@ -36,32 +33,32 @@ jobs:
             or-tools-${{ runner.os }}-
 
       - name: Clone ORTools repository
-        if: steps.check_mod_sat_runner.outputs.changed == 'true' && steps.cache-or-tools.outputs.cache-hit != 'true'
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true' && steps.cache-or-tools.outputs.cache-hit != 'true'
         run: git clone -b main https://github.com/google/or-tools SkedAIServer/or-tools
         
       - name: Copy mod_sat_runner.cc to OR-Tools
-        if: steps.check_mod_sat_runner.outputs.changed == 'true'
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true'
         run: Copy-Item SkedAIServer\mod_sat_runner\mod_sat_runner.cc SkedAIServer/or-tools/examples/cpp
 
       - name: Ensure Make is installed
-        if: steps.check_mod_sat_runner.outputs.changed == 'true'
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true'
         run: |
           choco list --local-only | Select-String "make" || choco install make
 
       - name: Setup MSVC environment for Visual Studio 2022
-        if: steps.check_mod_sat_runner.outputs.changed == 'true'
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true'
         uses: ilammy/msvc-dev-cmd@v1
         with:
           toolset: 14.3
 
       - name: Build mod_sat_runner
-        if: steps.check_mod_sat_runner.outputs.changed == 'true'
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true'
         run: |
           cd SkedAIServer/or-tools
           make build SOURCE=examples/cpp/mod_sat_runner.cc
 
       - name: Upload compiled mod_sat_runner as artifact
-        if: steps.check_mod_sat_runner.outputs.changed == 'true'
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: mod_sat_runner-binary
