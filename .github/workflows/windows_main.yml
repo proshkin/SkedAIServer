@@ -112,7 +112,7 @@ jobs:
           $modSatRunnerChanged = ${{ steps.check_mod_sat_runner.outputs.changed }}
           $authenticatorChanged = ${{ steps.check_authenticator.outputs.changed }}
           $userServerMainChanged = ${{ steps.check_user_server_main.outputs.changed }}
-          $innoSetupChanged = git diff HEAD~1 --name-only | Select-String -Pattern "setup.iss"
+          $innoSetupChanged = git diff HEAD~1 --name-only | Select-String -Pattern "SkedAIUserServerInstallerSilent.iss"
 
           if ($modSatRunnerChanged -eq "true" -or $authenticatorChanged -eq "true" -or $userServerMainChanged -eq "true" -or $innoSetupChanged) {
             echo "changed=true" >> $GITHUB_OUTPUT
