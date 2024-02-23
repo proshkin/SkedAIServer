@@ -1,0 +1,128 @@
+name: Combined Windows Build Workflow
+
+on: push
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: 'SkedAIServer'
+
+
+
+      - name: Check for changes in mod_sat_runner.cc
+        id: check_mod_sat_runner
+        run: |
+          $changed = git diff HEAD~1 --name-only | Select-String -Pattern "SkedAIServer/mod_sat_runner/mod_sat_runner.cc"
+          if ($changed) {
+            echo "::set-output name=changed::true"
+          } else {
+            echo "::set-output name=changed::false"
+          }
+        shell: powershell
+
+      - name: Cache OR-Tools Build
+        if: steps.check_mod_sat_runner.outputs.changed == 'true'
+        uses: actions/cache@v4
+        with:
+          path: SkedAIServer/or-tools
+          key: or-tools-${{ runner.os }}-${{ hashFiles('SkedAIServer/mod_sat_runner/mod_sat_runner.cc', '**/CMakeLists.txt', '**/*.h') }}
+          restore-keys: |
+            or-tools-${{ runner.os }}-
+
+      - name: Clone ORTools repository
+        if: steps.check_mod_sat_runner.outputs.changed == 'true' && steps.cache-or-tools.outputs.cache-hit != 'true'
+        run: git clone -b main https://github.com/google/or-tools SkedAIServer/or-tools
+        
+      - name: Copy mod_sat_runner.cc to OR-Tools
+        if: steps.check_mod_sat_runner.outputs.changed == 'true'
+        run: Copy-Item SkedAIServer\mod_sat_runner\mod_sat_runner.cc SkedAIServer/or-tools/examples/cpp
+
+      - name: Ensure Make is installed
+        if: steps.check_mod_sat_runner.outputs.changed == 'true'
+        run: |
+          choco list --local-only | Select-String "make" || choco install make
+
+      - name: Setup MSVC environment for Visual Studio 2022
+        if: steps.check_mod_sat_runner.outputs.changed == 'true'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          toolset: 14.3
+
+      - name: Build mod_sat_runner
+        if: steps.check_mod_sat_runner.outputs.changed == 'true'
+        run: |
+          cd SkedAIServer/or-tools
+          make build SOURCE=examples/cpp/mod_sat_runner.cc
+
+      - name: Upload compiled mod_sat_runner as artifact
+        if: steps.check_mod_sat_runner.outputs.changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mod_sat_runner-binary
+          path: SkedAIServer/or-tools/temp_cpp/mod_sat_runner/build/Release/bin/mod_sat_runner.exe
+
+
+
+      - name: Check for changes in authenticator.js
+        id: check_authenticator
+        run: |
+          $changed = git diff HEAD~1 --name-only | Select-String -Pattern "SkedAIServer/authenticator.js"
+          if ($changed) {
+            echo "::set-output name=changed::true"
+          } else {
+            echo "::set-output name=changed::false"
+          }
+        shell: powershell
+
+      - name: Build authenticator.exe
+        if: steps.check_authenticator.outputs.changed == 'true'
+        run: |
+          echo "Building authenticator.exe because authenticator.js has changed."
+        shell: powershell
+
+
+
+      - name: Check for changes in userServerMain.js
+        id: check_user_server_main
+        run: |
+          $changed = git diff HEAD~1 --name-only | Select-String -Pattern "SkedAIServer/userServerMain.js"
+          if ($changed) {
+            echo "::set-output name=changed::true"
+          } else {
+            echo "::set-output name=changed::false"
+          }
+        shell: powershell
+
+      - name: Build userServerMain.js to main.exe
+        if: steps.check_user_server_main.outputs.changed == 'true'
+        run: |
+          # Your build commands for authenticator.exe
+          echo "Building userServerMain.js into main.exe because userServerMain.js has changed."
+        shell: powershell
+
+
+
+      - name: Check for changes in Inno Setup script
+        id: check_inno_setup
+        run: |
+          $modSatRunnerChanged = ${{ steps.check_mod_sat_runner.outputs.changed }}
+          $authenticatorChanged = ${{ steps.check_authenticator.outputs.changed }}
+          $userServerMainChanged = ${{ steps.check_user_server_main.outputs.changed }}
+          $innoSetupChanged = git diff HEAD~1 --name-only | Select-String -Pattern "setup.iss"
+
+          if ($modSatRunnerChanged -eq "true" -or $authenticatorChanged -eq "true" -or $userServerMainChanged -eq "true" -or $innoSetupChanged) {
+            echo "::set-output name=changed::true"
+          } else {
+            echo "::set-output name=changed::false"
+          fi
+        shell: powershell
+
+      - name: Build Inno Setup Installer
+        if: steps.check_inno_setup.outputs.changed == 'true'
+        run: |
+          echo "Building Inno Setup Installer because relevant files have changed."
+        shell: powershell
