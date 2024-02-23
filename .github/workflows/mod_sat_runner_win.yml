@@ -1,6 +1,9 @@
 name: Build mod_sat_runner for Windows
 
-on: [push]
+on:
+  push:
+    paths:
+      - 'SkedAIServer\mod_sat_runner\mod_sat_runner.cc'
 
 jobs:
   build:
