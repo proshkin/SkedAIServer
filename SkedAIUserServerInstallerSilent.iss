@@ -67,5 +67,3 @@ begin
         Exec(ExpandConstant('{app}\nssm.exe'), 'start SkedAIUserServer', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
     end;
 end;
-
-; random ending comment
