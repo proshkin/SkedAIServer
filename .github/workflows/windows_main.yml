@@ -119,7 +119,6 @@ jobs:
           } else {
             echo "changed=false" >> $GITHUB_OUTPUT
           }
-          fi
         shell: powershell
 
       - name: Build Inno Setup Installer
