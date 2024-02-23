@@ -67,18 +67,17 @@ jobs:
 
 
       - name: Check for changes in authenticator.js
-        id: check_authenticator
         run: |
           $changed = git diff HEAD~1 --name-only | Select-String -Pattern "SkedAIServer/authenticator.js"
-          if ($changed) {
-            echo "changed=true" >> $GITHUB_OUTPUT
+          if ($null -ne $changed) {
+            echo "AUTHENTICATOR_CHANGED=true" >> $env:GITHUB_ENV
           } else {
-            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "AUTHENTICATOR_CHANGED=false" >> $env:GITHUB_ENV
           }
         shell: powershell
 
       - name: Build authenticator.exe
-        if: steps.check_authenticator.outputs.changed == 'true'
+        if: env.AUTHENTICATOR_CHANGED == 'true'
         run: |
           echo "Building authenticator.exe because authenticator.js has changed."
         shell: powershell
@@ -86,53 +85,58 @@ jobs:
 
 
       - name: Check for changes in userServerMain.js
-        id: check_user_server_main
         run: |
           $changed = git diff HEAD~1 --name-only | Select-String -Pattern "SkedAIServer/userServerMain.js"
-          if ($changed) {
-            echo "changed=true" >> $GITHUB_OUTPUT
+          if ($null -ne $changed) {
+            echo "USER_SERVER_MAIN_CHANGED=true" >> $env:GITHUB_ENV
           } else {
-            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "USER_SERVER_MAIN_CHANGED=false" >> $env:GITHUB_ENV
           }
         shell: powershell
 
       - name: Build userServerMain.js to main.exe
-        if: steps.check_user_server_main.outputs.changed == 'true'
+        if: env.USER_SERVER_MAIN_CHANGED == 'true'
         run: |
-          # Your build commands for authenticator.exe
           echo "Building userServerMain.js into main.exe because userServerMain.js has changed."
         shell: powershell
 
 
 
       - name: Check for changes in Inno Setup script
-        id: check_inno_setup
         run: |
-          $modSatRunnerChanged = ${{ steps.check_mod_sat_runner.outputs.changed }}
-          $authenticatorChanged = ${{ steps.check_authenticator.outputs.changed }}
-          $userServerMainChanged = ${{ steps.check_user_server_main.outputs.changed }}
-          $innoSetupChanged = git diff HEAD~1 --name-only | Select-String -Pattern "SkedAIUserServerInstallerSilent.iss"
-
-          if ($modSatRunnerChanged -eq "true" -or $authenticatorChanged -eq "true" -or $userServerMainChanged -eq "true" -or $innoSetupChanged) {
-            echo "changed=true" >> $GITHUB_OUTPUT
+          $changed = git diff HEAD~1 --name-only | Select-String -Pattern "SkedAIUserServerInstallerSilent.iss"
+          if ($null -ne $changed) {
+            echo "INNO_SETUP_SCRIPT_CHANGED=true" >> $env:GITHUB_ENV
           } else {
-            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "INNO_SETUP_SCRIPT_CHANGED=false" >> $env:GITHUB_ENV
+          }
+        shell: powershell
+
+      - name: Determine if need to build installer
+        run: |
+          if ($env:MOD_SAT_RUNNER_CHANGED -eq "true" -or
+              $env:AUTHENTICATOR_CHANGED -eq "true" -or
+              $env:USER_SERVER_MAIN_CHANGED -eq "true" -or
+              $env:INNO_SETUP_SCRIPT_CHANGED -eq "true") {
+            echo "INNO_SETUP_CHANGED=true" >> $env:GITHUB_ENV
+          } else {
+            echo "INNO_SETUP_CHANGED=false" >> $env:GITHUB_ENV
           }
         shell: powershell
 
       - name: Install Inno Setup
-        if: steps.check_inno_setup.outputs.changed == 'true'
+        if: env.INNO_SETUP_CHANGED == 'true'
         run: |
           choco install innosetup
 
       - name: Compile Installer
-        if: steps.check_inno_setup.outputs.changed == 'true'
+        if: env.INNO_SETUP_CHANGED == 'true'
         run: |
           "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" SkedAIUserServerInstallerSilent.iss
         shell: cmd
         
       - name: Upload Installer as Artifact
-        if: steps.check_inno_setup.outputs.changed == 'true'
+        if: env.INNO_SETUP_CHANGED == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: windows-installer
