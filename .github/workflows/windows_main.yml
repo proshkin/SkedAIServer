@@ -1,4 +1,4 @@
-name: Combined Windows Build Workflow
+name: Complete Windows Build Workflow
 
 on: push
 
@@ -121,8 +121,20 @@ jobs:
           }
         shell: powershell
 
-      - name: Build Inno Setup Installer
+      - name: Install Inno Setup
         if: steps.check_inno_setup.outputs.changed == 'true'
         run: |
-          echo "Building Inno Setup Installer because relevant files have changed."
-        shell: powershell
+          choco install innosetup
+
+      - name: Compile Installer
+        if: steps.check_inno_setup.outputs.changed == 'true'
+        run: |
+          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" SkedAIUserServerInstallerSilent.iss
+        shell: cmd
+        
+      - name: Upload Installer as Artifact
+        if: steps.check_inno_setup.outputs.changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: Output\SkedAIUserServerInstaller.exe
