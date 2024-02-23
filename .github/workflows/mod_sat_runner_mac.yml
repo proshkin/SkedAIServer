@@ -1,6 +1,9 @@
 name: Build mod_sat_runner for macOS
 
-on: [push]
+on:
+  push:
+    paths:
+      - 'SkedAIServer/SkedAIUserServerInstallerSilent.iss'
 
 jobs:
   build:
