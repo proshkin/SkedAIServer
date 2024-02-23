@@ -17,9 +17,11 @@ jobs:
         id: check_mod_sat_runner
         run: |
           $changed = git diff HEAD~1 --name-only | Select-String -Pattern "mod_sat_runner/mod_sat_runner.cc"
-          if ($changed) {
+          if ($null -ne $changed) {
+            Write-Host "Change in mod_sat_runner.cc detected."
             echo "changed=true" >> $GITHUB_OUTPUT
           } else {
+            Write-Host "No change in mod_sat_runner.cc detected."
             echo "changed=false" >> $GITHUB_OUTPUT
           }
         shell: powershell
