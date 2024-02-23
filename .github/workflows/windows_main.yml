@@ -72,9 +72,9 @@ jobs:
         run: |
           $changed = git diff HEAD~1 --name-only | Select-String -Pattern "SkedAIServer/authenticator.js"
           if ($changed) {
-            echo "::set-output name=changed::true"
+            echo "changed=true" >> $GITHUB_OUTPUT
           } else {
-            echo "::set-output name=changed::false"
+            echo "changed=false" >> $GITHUB_OUTPUT
           }
         shell: powershell
 
@@ -91,9 +91,9 @@ jobs:
         run: |
           $changed = git diff HEAD~1 --name-only | Select-String -Pattern "SkedAIServer/userServerMain.js"
           if ($changed) {
-            echo "::set-output name=changed::true"
+            echo "changed=true" >> $GITHUB_OUTPUT
           } else {
-            echo "::set-output name=changed::false"
+            echo "changed=false" >> $GITHUB_OUTPUT
           }
         shell: powershell
 
@@ -115,9 +115,10 @@ jobs:
           $innoSetupChanged = git diff HEAD~1 --name-only | Select-String -Pattern "setup.iss"
 
           if ($modSatRunnerChanged -eq "true" -or $authenticatorChanged -eq "true" -or $userServerMainChanged -eq "true" -or $innoSetupChanged) {
-            echo "::set-output name=changed::true"
+            echo "changed=true" >> $GITHUB_OUTPUT
           } else {
-            echo "::set-output name=changed::false"
+            echo "changed=false" >> $GITHUB_OUTPUT
+          }
           fi
         shell: powershell
 
