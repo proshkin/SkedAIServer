@@ -18,9 +18,9 @@ jobs:
         run: |
           $changed = git diff HEAD~1 --name-only | Select-String -Pattern "mod_sat_runner/mod_sat_runner.cc"
           if ($changed) {
-            echo "::set-output name=changed::true"
+            echo "changed=true" >> $GITHUB_OUTPUT
           } else {
-            echo "::set-output name=changed::false"
+            echo "changed=false" >> $GITHUB_OUTPUT
           }
         shell: powershell
 
