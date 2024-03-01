@@ -86,7 +86,7 @@ jobs:
 
       - name: Check for changes in userServerMain.js
         run: |
-          $changed = git diff HEAD~1 --name-only | Select-String -Pattern "SkedAIServer/userServerMain.js"
+          $changed = git diff HEAD~1 --name-only | Select-String -Pattern "SkedAIServer/userServerMain/userServerMain.js"
           if ($null -ne $changed) {
             echo "USER_SERVER_MAIN_CHANGED=true" >> $env:GITHUB_ENV
           } else {
@@ -94,10 +94,24 @@ jobs:
           }
         shell: powershell
 
+      - name: setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies for userServerMain.js
+        if: env.USER_SERVER_MAIN_CHANGED == 'true'
+        run: |
+          cd userServerMain
+          npm install -g nexe
+          npm install
+        shell: powershell
+
       - name: Build userServerMain.js to main.exe
         if: env.USER_SERVER_MAIN_CHANGED == 'true'
         run: |
-          echo "Building userServerMain.js into main.exe because userServerMain.js has changed."
+          cd userServerMain
+          nexe userServerMain.js -o main.exe
         shell: powershell
 
 
