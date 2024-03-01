@@ -97,7 +97,7 @@ jobs:
       - name: setup Node.js environment
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '14.15.3'
 
       - name: Install dependencies for userServerMain.js
         if: env.USER_SERVER_MAIN_CHANGED == 'true'
@@ -111,7 +111,7 @@ jobs:
         if: env.USER_SERVER_MAIN_CHANGED == 'true'
         run: |
           cd userServerMain
-          nexe userServerMain.js -o main.exe --build
+          nexe userServerMain.js -o main.exe
         shell: powershell
 
       - name: Upload compiled main.exe as artifact
