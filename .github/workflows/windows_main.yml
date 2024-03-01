@@ -23,46 +23,53 @@ jobs:
           }
         shell: powershell
 
+      - name: Get latest OR-Tools stable commit SHA
+        id: ortools_sha
+        run: |
+          $response = Invoke-RestMethod -Uri "https://api.github.com/repos/google/or-tools/commits/stable"
+          echo "ORTOOLS_LATEST_SHA=${response.sha}" >> $env:GITHUB_ENV
+        shell: powershell
+      
       - name: Cache OR-Tools Build
-        if: env.MOD_SAT_RUNNER_CHANGED == 'true'
+        id: cache-ortools
         uses: actions/cache@v4
         with:
-          path: SkedAIServer/or-tools
-          key: or-tools-${{ runner.os }}-${{ hashFiles('SkedAIServer/mod_sat_runner/mod_sat_runner.cc', '**/CMakeLists.txt', '**/*.h') }}
+          path: or-tools
+          key: or-tools-${{ runner.os }}-${{ env.ORTOOLS_LATEST_SHA }}
           restore-keys: |
             or-tools-${{ runner.os }}-
 
       - name: Clone ORTools repository
-        if: env.MOD_SAT_RUNNER_CHANGED == 'true' && steps.cache-or-tools.outputs.cache-hit != 'true'
-        run: git clone -b main https://github.com/google/or-tools SkedAIServer/or-tools
+        if: steps.cache-ortools.outputs.cache-hit != 'true'
+        run: git clone -b stable https://github.com/google/or-tools or-tools
         
       - name: Copy mod_sat_runner.cc to OR-Tools
-        if: env.MOD_SAT_RUNNER_CHANGED == 'true'
-        run: Copy-Item SkedAIServer\mod_sat_runner\mod_sat_runner.cc SkedAIServer/or-tools/examples/cpp
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true'
+        run: Copy-Item SkedAIServer\mod_sat_runner\mod_sat_runner.cc or-tools/examples/cpp
 
       - name: Ensure Make is installed
-        if: env.MOD_SAT_RUNNER_CHANGED == 'true'
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true'
         run: |
           choco list --local-only | Select-String "make" || choco install make
 
       - name: Setup MSVC environment for Visual Studio 2022
-        if: env.MOD_SAT_RUNNER_CHANGED == 'true'
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true'
         uses: ilammy/msvc-dev-cmd@v1
         with:
           toolset: 14.3
 
       - name: Build mod_sat_runner
-        if: env.MOD_SAT_RUNNER_CHANGED == 'true'
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true'
         run: |
           cd SkedAIServer/or-tools
           make build SOURCE=examples/cpp/mod_sat_runner.cc
 
       - name: Upload compiled mod_sat_runner as artifact
-        if: env.MOD_SAT_RUNNER_CHANGED == 'true'
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: mod_sat_runner
-          path: SkedAIServer/or-tools/temp_cpp/mod_sat_runner/build/Release/bin/mod_sat_runner.exe
+          path: or-tools/temp_cpp/mod_sat_runner/build/Release/bin/mod_sat_runner.exe
 
 
 
