@@ -97,7 +97,7 @@ jobs:
         shell: powershell
 
       - name: Upload compiled SkedAuthenticator.exe as artifact
-        if: env.USER_SERVER_MAIN_CHANGED == 'true'
+        if: env.AUTHENTICATOR_CHANGED == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: SkedAuthenticator
