@@ -111,8 +111,15 @@ jobs:
         if: env.USER_SERVER_MAIN_CHANGED == 'true'
         run: |
           cd userServerMain
-          nexe userServerMain.js -o main.exe
+          nexe userServerMain.js -o main.exe --build
         shell: powershell
+
+      - name: Upload compiled main.exe as artifact
+        if: env.USER_SERVER_MAIN_CHANGED == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: main-executable
+          path: userServerMain/main.exe
 
 
 
