@@ -61,14 +61,14 @@ jobs:
         if: env.MOD_SAT_RUNNER_CHANGED == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: mod_sat_runner-binary
+          name: mod_sat_runner
           path: SkedAIServer/or-tools/temp_cpp/mod_sat_runner/build/Release/bin/mod_sat_runner.exe
 
 
 
       - name: Check for changes in authenticator.js
         run: |
-          $changed = git diff HEAD~1 --name-only | Select-String -Pattern "SkedAIServer/authenticator.js"
+          $changed = git diff HEAD~1 --name-only | Select-String -Pattern "authenticator/authenticator.js"
           if ($null -ne $changed) {
             echo "AUTHENTICATOR_CHANGED=true" >> $env:GITHUB_ENV
           } else {
@@ -76,11 +76,32 @@ jobs:
           }
         shell: powershell
 
+      - name: setup Node.js environment for packages
+        if: env.AUTHENTICATOR_CHANGED == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.11.0'
+
+      - name: Install dependencies for authenticator.js
+        if: env.AUTHENTICATOR_CHANGED == 'true'
+        run: |
+          cd authenticator
+          npm install
+        shell: powershell
+
       - name: Build authenticator.exe
         if: env.AUTHENTICATOR_CHANGED == 'true'
         run: |
-          echo "Building authenticator.exe because authenticator.js has changed."
+          cd authenticator
+          npm run dist
         shell: powershell
+
+      - name: Upload compiled SkedAuthenticator.exe as artifact
+        if: env.USER_SERVER_MAIN_CHANGED == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: SkedAuthenticator
+          path: authenticator/build/win-unpacked/SkedAuthenticator.exe
 
 
 
@@ -95,6 +116,7 @@ jobs:
         shell: powershell
 
       - name: setup Node.js environment for packages
+        if: env.USER_SERVER_MAIN_CHANGED == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20.11.0'
@@ -123,7 +145,7 @@ jobs:
         if: env.USER_SERVER_MAIN_CHANGED == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: main-executable
+          name: main
           path: userServerMain/main.exe
 
 
