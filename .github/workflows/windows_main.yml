@@ -130,6 +130,7 @@ jobs:
         shell: powershell
 
       - name: setup Node.js environment for nexe
+        if: env.USER_SERVER_MAIN_CHANGED == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '14.15.3'
