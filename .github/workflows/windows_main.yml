@@ -23,10 +23,10 @@ jobs:
           }
         shell: powershell
 
-      - name: Get latest OR-Tools stable commit SHA
+      - name: Get latest OR-Tools main commit SHA
         id: ortools_sha
         run: |
-          $response = Invoke-RestMethod -Uri "https://api.github.com/repos/google/or-tools/commits/stable"
+          $response = Invoke-RestMethod -Uri "https://api.github.com/repos/google/or-tools/commits/main"
           echo "ORTOOLS_LATEST_SHA=${response.sha}" >> $env:GITHUB_ENV
         shell: powershell
       
@@ -41,7 +41,7 @@ jobs:
 
       - name: Clone ORTools repository
         if: steps.cache-ortools.outputs.cache-hit != 'true'
-        run: git clone -b stable https://github.com/google/or-tools or-tools
+        run: git clone -b main https://github.com/google/or-tools or-tools
         
       - name: Copy mod_sat_runner.cc to OR-Tools
         if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true'
