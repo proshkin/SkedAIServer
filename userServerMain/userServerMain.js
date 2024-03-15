@@ -1,6 +1,5 @@
 const DEBUG = true;
 
-
 const chokidar = require('chokidar');
 const os = require('os');
 const {spawn, exec} = require('child_process');
