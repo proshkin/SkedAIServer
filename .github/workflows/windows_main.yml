@@ -39,6 +39,14 @@ jobs:
           restore-keys: |
             or-tools-${{ runner.os }}-
 
+      - name: Cache mod_sat_runner executable
+        id: cache-executable
+        uses: actions/cache@v4
+        with:
+          path: or-tools/temp_cpp/mod_sat_runner/build/Release/bin
+          key: mod-sat-runner-${{ runner.os }}-${{ env.ORTOOLS_LATEST_SHA }}-${{ hashFiles('mod_sat_runner/**') }}
+          restore-keys: mod-sat-runner-${{ runner.os }}-
+
       - name: Clone ORTools repository
         if: steps.cache-ortools.outputs.cache-hit != 'true'
         run: git clone -b main https://github.com/google/or-tools or-tools
@@ -65,7 +73,7 @@ jobs:
           make build SOURCE=examples/cpp/mod_sat_runner.cc
 
       - name: Upload compiled mod_sat_runner as artifact
-        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true'
+        # if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: mod_sat_runner
