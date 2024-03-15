@@ -91,6 +91,14 @@ jobs:
           }
         shell: powershell
 
+      - name: Cache SkedAuthenticator executable
+        id: cache-authenticator
+        uses: actions/cache@v4
+        with:
+          path: authenticator/build/win-unpacked
+          key: skedauthenticator-${{ runner.os }}-${{ hashFiles('authenticator/**') }}
+          restore-keys: skedauthenticator-${{ runner.os }}-
+
       - name: setup Node.js environment for packages
         if: env.AUTHENTICATOR_CHANGED == 'true'
         uses: actions/setup-node@v4
@@ -112,7 +120,7 @@ jobs:
         shell: powershell
 
       - name: Upload compiled SkedAuthenticator.exe as artifact
-        if: env.AUTHENTICATOR_CHANGED == 'true'
+        # if: env.AUTHENTICATOR_CHANGED == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: SkedAuthenticator
@@ -129,6 +137,14 @@ jobs:
             echo "USER_SERVER_MAIN_CHANGED=false" >> $env:GITHUB_ENV
           }
         shell: powershell
+
+      - name: Cache userServerMain executable
+        id: cache-userServerMain
+        uses: actions/cache@v4
+        with:
+          path: userServerMain/main.exe
+          key: userServerMain-${{ runner.os }}-${{ hashFiles('userServerMain/**') }}
+          restore-keys: userServerMain-${{ runner.os }}-
 
       - name: setup Node.js environment for packages
         if: env.USER_SERVER_MAIN_CHANGED == 'true'
@@ -158,7 +174,7 @@ jobs:
         shell: powershell
 
       - name: Upload compiled main.exe as artifact
-        if: env.USER_SERVER_MAIN_CHANGED == 'true'
+        # if: env.USER_SERVER_MAIN_CHANGED == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: main
@@ -192,11 +208,29 @@ jobs:
         if: env.INNO_SETUP_CHANGED == 'true'
         run: |
           choco install innosetup
+      
+      - name: Create version.txt
+        if: env.INNO_SETUP_CHANGED == 'true'
+        run: |
+          echo v0.0.1 > version.txt
+        shell: bash
+
+      - name: Create token.txt
+        if: env.INNO_SETUP_CHANGED == 'true'
+        run: |
+          New-Item -ItemType File -Path token.txt -Force
+        shell: powershell
+
+      - name: Install NSSM
+        run: |
+          Invoke-WebRequest -Uri "https://nssm.cc/release/nssm-2.24.zip" -OutFile "nssm.zip"
+          Expand-Archive -Path "nssm.zip" -DestinationPath "nssm"
+        shell: powershell
 
       - name: Compile Installer
         if: env.INNO_SETUP_CHANGED == 'true'
         run: |
-          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" SkedAIUserServerInstallerSilent.iss
+          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" SkedAIUserServerGithubInstaller.iss
         shell: cmd
         
       - name: Upload Installer as Artifact
