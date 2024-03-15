@@ -201,6 +201,27 @@ jobs:
           }
         shell: powershell
 
+      - name: Download mod_sat_runner Artifact
+        if: env.INNO_SETUP_CHANGED == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: mod_sat_runner
+          path: downloaded-artifacts
+
+      - name: Download SkedAuthenticator Artifact
+        if: env.INNO_SETUP_CHANGED == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: SkedAuthenticator
+          path: downloaded-artifacts
+
+      - name: Download main.exe Artifact
+        if: env.INNO_SETUP_CHANGED == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: main
+          path: downloaded-artifacts
+
       - name: Install Inno Setup
         if: env.INNO_SETUP_CHANGED == 'true'
         run: |
