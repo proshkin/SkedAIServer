@@ -8,6 +8,7 @@ UninstallDisplayName=Uninstall SkedAI User Server
 OutputBaseFilename=SkedAIUserServerInstaller
 OutputDir=.\Output
 
+
 [Files]
 Source: "downloaded-artifacts\main.exe"; DestDir: "{app}"
 Source: "downloaded-artifacts\mod_sat_runner.exe"; DestDir: "{app}"
