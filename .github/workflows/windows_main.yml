@@ -245,11 +245,6 @@ jobs:
           Expand-Archive -Path "nssm.zip" -DestinationPath "nssm"
         shell: powershell
 
-      - name: List NSSM Directory
-        run: |
-          Get-ChildItem -Path "nssm" -Recurse
-        shell: powershell
-
       - name: Compile Installer
         if: env.INNO_SETUP_CHANGED == 'true'
         run: |
