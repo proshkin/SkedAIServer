@@ -184,7 +184,7 @@ jobs:
 
       - name: Check for changes in Inno Setup script
         run: |
-          $changed = git diff HEAD~1 --name-only | Select-String -Pattern "SkedAIUserServerInstallerSilent.iss"
+          $changed = git diff HEAD~1 --name-only | Select-String -Pattern "SkedAIUserServerGithubInstaller.iss"
           if ($null -ne $changed) {
             echo "INNO_SETUP_SCRIPT_CHANGED=true" >> $env:GITHUB_ENV
           } else {
