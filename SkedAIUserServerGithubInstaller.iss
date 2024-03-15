@@ -9,12 +9,12 @@ OutputBaseFilename=SkedAIUserServerInstaller
 OutputDir=.\Output
 
 [Files]
-Source: "C:\Users\jack8\Documents\PyCharm\SkedAIUserServerInstaller\main.exe"; DestDir: "{app}"
-Source: "C:\Users\jack8\NewOrTools\or-tools\temp_cpp\mod_sat_runner\build\Release\bin\mod_sat_runner.exe"; DestDir: "{app}"
-Source: "C:\Users\jack8\Downloads\nssm-2.24\nssm-2.24\win64\nssm.exe"; DestDir: "{app}"
-Source: "C:\Users\jack8\Documents\PyCharm\SkedAIAuthenticator\build\SkedAuthenticator.exe"; DestDir: "{app}"
-Source: "C:\Users\jack8\Documents\PyCharm\SkedAIUserServerInstaller\version.txt"; DestDir: "{userappdata}\Node Server"; Flags: ignoreversion createallsubdirs recursesubdirs
-Source: "C:\Users\jack8\Documents\PyCharm\SkedAIUserServerInstaller\token.txt"; DestDir: "{userappdata}\Node Server"; Flags: ignoreversion createallsubdirs recursesubdirs
+Source: "downloaded-artifacts\main.exe"; DestDir: "{app}"
+Source: "downloaded-artifacts\mod_sat_runner.exe"; DestDir: "{app}"
+Source: "nssm\win64\nssm.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "downloaded-artifacts\SkedAuthenticator.exe"; DestDir: "{app}"
+Source: "version.txt"; DestDir: "{userappdata}\Node Server"; Flags: ignoreversion createallsubdirs recursesubdirs
+Source: "token.txt"; DestDir: "{userappdata}\Node Server"; Flags: ignoreversion createallsubdirs recursesubdirs
 
 [Run]
 Filename: "{app}\nssm.exe"; Parameters: "install SkedAIUserServer ""{app}\main.exe"""; Description: "Installing the service..."; Flags: runhidden
