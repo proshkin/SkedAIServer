@@ -40,7 +40,7 @@ jobs:
             or-tools-${{ runner.os }}-
 
       - name: Cache mod_sat_runner executable
-        id: cache-executable
+        id: cache-mod-sat-runner
         uses: actions/cache@v4
         with:
           path: or-tools/temp_cpp/mod_sat_runner/build/Release/bin
@@ -52,28 +52,27 @@ jobs:
         run: git clone -b main https://github.com/google/or-tools or-tools
         
       - name: Copy mod_sat_runner.cc to OR-Tools
-        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true'
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
         run: Copy-Item mod_sat_runner\mod_sat_runner.cc or-tools/examples/cpp
 
       - name: Ensure Make is installed
-        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true'
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
         run: |
           choco list --local-only | Select-String "make" || choco install make
 
       - name: Setup MSVC environment for Visual Studio 2022
-        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true'
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
         uses: ilammy/msvc-dev-cmd@v1
         with:
           toolset: 14.3
 
       - name: Build mod_sat_runner
-        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true'
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
         run: |
           cd or-tools
           make build SOURCE=examples/cpp/mod_sat_runner.cc
 
       - name: Upload compiled mod_sat_runner as artifact
-        # if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: mod_sat_runner
@@ -100,27 +99,26 @@ jobs:
           restore-keys: skedauthenticator-${{ runner.os }}-
 
       - name: setup Node.js environment for packages
-        if: env.AUTHENTICATOR_CHANGED == 'true'
+        if: env.AUTHENTICATOR_CHANGED == 'true' || steps.cache-authenticator.outputs.cache-hit != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20.11.0'
 
       - name: Install dependencies for authenticator.js
-        if: env.AUTHENTICATOR_CHANGED == 'true'
+        if: env.AUTHENTICATOR_CHANGED == 'true' || steps.cache-authenticator.outputs.cache-hit != 'true'
         run: |
           cd authenticator
           npm install
         shell: powershell
 
       - name: Build authenticator.exe
-        if: env.AUTHENTICATOR_CHANGED == 'true'
+        if: env.AUTHENTICATOR_CHANGED == 'true' || steps.cache-authenticator.outputs.cache-hit != 'true'
         run: |
           cd authenticator
           npm run dist
         shell: powershell
 
       - name: Upload compiled SkedAuthenticator.exe as artifact
-        # if: env.AUTHENTICATOR_CHANGED == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: SkedAuthenticator
@@ -147,13 +145,13 @@ jobs:
           restore-keys: userServerMain-${{ runner.os }}-
 
       - name: setup Node.js environment for packages
-        if: env.USER_SERVER_MAIN_CHANGED == 'true'
+        if: env.USER_SERVER_MAIN_CHANGED == 'true' || steps.cache-userServerMain.outputs.cache-hit != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20.11.0'
 
       - name: Install dependencies for userServerMain.js
-        if: env.USER_SERVER_MAIN_CHANGED == 'true'
+        if: env.USER_SERVER_MAIN_CHANGED == 'true' || steps.cache-userServerMain.outputs.cache-hit != 'true'
         run: |
           cd userServerMain
           npm install -g nexe
@@ -161,20 +159,19 @@ jobs:
         shell: powershell
 
       - name: setup Node.js environment for nexe
-        if: env.USER_SERVER_MAIN_CHANGED == 'true'
+        if: env.USER_SERVER_MAIN_CHANGED == 'true' || steps.cache-userServerMain.outputs.cache-hit != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '14.15.3'
 
       - name: Build userServerMain.js to main.exe
-        if: env.USER_SERVER_MAIN_CHANGED == 'true'
+        if: env.USER_SERVER_MAIN_CHANGED == 'true' || steps.cache-userServerMain.outputs.cache-hit != 'true'
         run: |
           cd userServerMain
           nexe userServerMain.js -o main.exe
         shell: powershell
 
       - name: Upload compiled main.exe as artifact
-        # if: env.USER_SERVER_MAIN_CHANGED == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: main
