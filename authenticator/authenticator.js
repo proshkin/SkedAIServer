@@ -4,7 +4,6 @@ const { createClient } = require('@supabase/supabase-js');
 const { BrowserWindow, app } = require('electron');
 const { exec } = require('child_process');
 
-
 const supabaseUrl = 'https://jfcurpgmlzlceotuthat.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmY3VycGdtbHpsY2VvdHV0aGF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDUwODQ4ODksImV4cCI6MjAyMDY2MDg4OX0.7rAa3V9obXlEhewdRah4unY0apsEPHWEYXk5OwKYkLI';
 const supabase = createClient(supabaseUrl, supabaseKey);
