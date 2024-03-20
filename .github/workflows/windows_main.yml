@@ -240,6 +240,7 @@ jobs:
         shell: powershell
 
       - name: Install NSSM
+        if: env.INNO_SETUP_CHANGED == 'true'
         run: |
           Invoke-WebRequest -Uri "https://nssm.cc/release/nssm-2.24.zip" -OutFile "nssm.zip"
           Expand-Archive -Path "nssm.zip" -DestinationPath "nssm"
