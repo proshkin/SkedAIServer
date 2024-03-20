@@ -250,7 +250,7 @@ jobs:
       - name: Create version.txt
         if: env.INNO_SETUP_CHANGED == 'true'
         run: |
-          echo ${{ env.prerelease }} > version.txt
+          echo ${{ env.version_number }} > version.txt
         shell: powershell
 
       - name: Create token.txt
@@ -335,7 +335,7 @@ jobs:
           body: |
             This is an automated test release
           draft: false
-          prerelease: ${{ env.prerelease == 'true' }}
+          prerelease: ${{ env.is_prerelease == 'true' }}
 
       - name: Upload Release Asset
         if: env.INNO_SETUP_CHANGED == 'true'
