@@ -265,7 +265,8 @@ jobs:
           name: windows-installer
           path: downloaded-artifacts
 
-      - name: Create Release
+      - name: Upload Release Asset
+        if: env.INNO_SETUP_CHANGED == 'true'
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -278,6 +279,7 @@ jobs:
           prerelease: true
 
       - name: Upload Release Asset
+        if: env.INNO_SETUP_CHANGED == 'true'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
