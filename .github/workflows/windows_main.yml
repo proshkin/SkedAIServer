@@ -15,7 +15,7 @@ jobs:
 
       - name: Get Config File
         id: config
-        run: git clone https://github.com/JackChang0675/SkedAIConfig SkedAIConfig
+        run: git clone https://github.com/JackChang0675/SkedAIConfig
 
       - name: Read Config File
         id: read_config
