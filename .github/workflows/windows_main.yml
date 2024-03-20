@@ -341,6 +341,7 @@ jobs:
             This is an automated test release
           draft: false
           prerelease: true
+          
 
       - name: Upload Release Asset
         if: env.INNO_SETUP_CHANGED == 'true'
