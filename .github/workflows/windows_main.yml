@@ -17,6 +17,14 @@ jobs:
         id: config
         run: git clone https://github.com/JackChang0675/SkedAIConfig
 
+      - name: List Directory Contents
+        run: ls
+        shell: powershell
+
+      - name: List SkedAIConfig Directory Contents
+        run: ls -Path ./SkedAIConfig/
+        shell: powershell
+
       - name: Read Config File
         id: read_config
         run: |
