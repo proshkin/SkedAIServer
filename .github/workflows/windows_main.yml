@@ -17,14 +17,6 @@ jobs:
         id: config
         run: git clone https://github.com/JackChang0675/SkedAIConfig
 
-      - name: List Directory Contents
-        run: ls
-        shell: powershell
-
-      - name: List SkedAIConfig Directory Contents
-        run: ls -Path ./SkedAIConfig/
-        shell: powershell
-
       - name: Read Config File
         id: read_config
         run: |
@@ -33,7 +25,6 @@ jobs:
             $key, $value = $_ -split ':', 2
             $key = $key.Trim()
             $value = $value.Trim()
-            echo "::set-output name=$key::$value"
             echo "$key=$value" | Out-File -Append -FilePath $env:GITHUB_ENV
           }
         shell: powershell
@@ -293,7 +284,6 @@ jobs:
       
       - name: Check for Existing Release
         if: env.INNO_SETUP_CHANGED == 'true'
-        id: check_release
         run: |
           $headers = @{
             Authorization = "token $env:GITHUB_TOKEN"
@@ -302,7 +292,7 @@ jobs:
           $uri = "https://api.github.com/repos/${{ github.repository }}/releases/tags/test-action"
           try {
             $response = Invoke-RestMethod -Headers $headers -Uri $uri -Method Get
-            echo "::set-output name=release_id::$($response.id)"
+            echo "RELEASE_ID=$($response.id)" | Out-File -Append -FilePath $env:GITHUB_ENV
           } catch {
             $errorMessage = $_.Exception.Message
             if ($errorMessage -like "*Not Found*") {
@@ -316,17 +306,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Delete Existing Release
-        if: env.INNO_SETUP_CHANGED == 'true' && steps.check_release.outputs.release_id
+        if: env.INNO_SETUP_CHANGED == 'true' && env.RELEASE_ID
         run: |
           $headers = @{
             Authorization = "token $env:GITHUB_TOKEN"
             Accept = "application/vnd.github+json"
           }
-          $uri = "https://api.github.com/repos/${{ github.repository }}/releases/${{ steps.check_release.outputs.release_id }}"
+          $uri = "https://api.github.com/repos/${{ github.repository }}/releases/$env:RELEASE_ID"
           Invoke-RestMethod -Headers $headers -Uri $uri -Method Delete
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_ID: ${{ env.RELEASE_ID }}
 
       - name: Create Release
         id: create_release
@@ -341,7 +332,6 @@ jobs:
             This is an automated test release
           draft: false
           prerelease: true
-          
 
       - name: Upload Release Asset
         if: env.INNO_SETUP_CHANGED == 'true'
