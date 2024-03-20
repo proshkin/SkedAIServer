@@ -13,6 +13,23 @@ jobs:
 
 
 
+      - name: Get Config File
+        id: config
+        run: git clone https://github.com/JackChang0675/SkedAIConfig SkedAIConfig
+
+      - name: Read Config File
+        id: read_config
+        run: |
+          $configContent = Get-Content ./SkedAIConfig/mainConfig.txt
+          $configContent | ForEach-Object {
+            $key, $value = $_ -split ':', 2
+            $key = $key.Trim()
+            $value = $value.Trim()
+            echo "::set-output name=$key::$value"
+            echo "$key=$value" | Out-File -Append -FilePath $env:GITHUB_ENV
+          }
+        shell: powershell
+      
       - name: Check for changes in mod_sat_runner.cc
         run: |
           $changed = git diff HEAD~1 --name-only | Select-String -Pattern "mod_sat_runner/mod_sat_runner.cc"
