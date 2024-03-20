@@ -274,7 +274,7 @@ jobs:
             Authorization = "token $env:GITHUB_TOKEN"
             Accept = "application/vnd.github+json"
           }
-          $uri = "https://api.github.com/repos/${{ github.repository }/releases/tags/test-action"
+          $uri = "https://api.github.com/repos/${{ github.repository }}/releases/tags/test-action"
           $response = Invoke-RestMethod -Headers $headers -Uri $uri -Method Get -ErrorAction SilentlyContinue
           if ($response -ne $null) {
             echo "::set-output name=release_id::$($response.id)"
@@ -290,7 +290,7 @@ jobs:
             Authorization = "token $env:GITHUB_TOKEN"
             Accept = "application/vnd.github+json"
           }
-          $uri = "https://api.github.com/repos/${{ github.repository }/releases/${{ steps.check_release.outputs.release_id }}"
+          $uri = "https://api.github.com/repos/${{ github.repository }}/releases/${{ steps.check_release.outputs.release_id }}"
           Invoke-RestMethod -Headers $headers -Uri $uri -Method Delete
         shell: pwsh
         env:
