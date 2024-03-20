@@ -257,17 +257,25 @@ jobs:
         with:
           name: windows-installer
           path: Output\SkedAIUserServerInstaller.exe
+      
+      - name: Download Installer Artifact
+        if: env.INNO_SETUP_CHANGED == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+          path: downloaded-artifacts
 
       - name: Create Release
-        id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.run_number }}
-          release_name: Release ${{ github.run_number }}
+          tag_name: "test"
+          release_name: "Test"
+          body: |
+            This is an automated test release
           draft: false
-          prerelease: false
+          prerelease: true
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
