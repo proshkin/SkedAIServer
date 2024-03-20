@@ -275,9 +275,16 @@ jobs:
             Accept = "application/vnd.github+json"
           }
           $uri = "https://api.github.com/repos/${{ github.repository }}/releases/tags/test-action"
-          $response = Invoke-RestMethod -Headers $headers -Uri $uri -Method Get -ErrorAction SilentlyContinue
-          if ($response -ne $null) {
+          try {
+            $response = Invoke-RestMethod -Headers $headers -Uri $uri -Method Get
             echo "::set-output name=release_id::$($response.id)"
+          } catch {
+            $errorMessage = $_.Exception.Message
+            if ($errorMessage -like "*Not Found*") {
+              echo "Release 'test-action' does not exist or was deleted."
+            } else {
+              throw $_
+            }
           }
         shell: pwsh
         env:
