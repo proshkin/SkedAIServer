@@ -266,7 +266,8 @@ jobs:
           name: windows-installer
           path: downloaded-artifacts
 
-      - name: Upload Release Asset
+      - name: Create Release
+        id: create_release
         if: env.INNO_SETUP_CHANGED == 'true'
         uses: actions/create-release@v1
         env:
