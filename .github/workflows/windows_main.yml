@@ -273,8 +273,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: "test"
-          release_name: "Test"
+          tag_name: "test-${{ github.run_number }}"
+          release_name: "Test Release ${{ github.run_number }}"
           body: |
             This is an automated test release
           draft: false
