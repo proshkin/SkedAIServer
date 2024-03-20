@@ -39,12 +39,16 @@ jobs:
           }
         shell: powershell
 
-      - name: Get latest OR-Tools main commit SHA
+      - name: Get latest OR-Tools commit SHA from branch
         id: ortools_sha
         run: |
-          $response = Invoke-RestMethod -Uri "https://api.github.com/repos/google/or-tools/commits/main"
-          echo "ORTOOLS_LATEST_SHA=${response.sha}" >> $env:GITHUB_ENV
+          $branch = "${{ env.ortools_branch }}"
+          $uri = "https://api.github.com/repos/google/or-tools/commits/$branch"
+          $response = Invoke-RestMethod -Uri $uri
+          echo "ORTOOLS_LATEST_SHA=$($response.sha)" | Out-File -FilePath $env:GITHUB_ENV -Append
         shell: powershell
+        env:
+          ortools_branch: ${{ env.ortools_branch }}
       
       - name: Cache OR-Tools Build
         id: cache-ortools
