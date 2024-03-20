@@ -265,6 +265,36 @@ jobs:
         with:
           name: windows-installer
           path: downloaded-artifacts
+      
+      - name: Check for Existing Release
+        if: env.INNO_SETUP_CHANGED == 'true'
+        id: check_release
+        run: |
+          $headers = @{
+            Authorization = "token $env:GITHUB_TOKEN"
+            Accept = "application/vnd.github+json"
+          }
+          $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/releases/tags/test-action"
+          $response = Invoke-RestMethod -Headers $headers -Uri $uri -Method Get -ErrorAction SilentlyContinue
+          if ($response -ne $null) {
+            echo "::set-output name=release_id::$($response.id)"
+          }
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete Existing Release
+        if: env.INNO_SETUP_CHANGED == 'true' && steps.check_release.outputs.release_id
+        run: |
+          $headers = @{
+            Authorization = "token $env:GITHUB_TOKEN"
+            Accept = "application/vnd.github+json"
+          }
+          $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/releases/${{ steps.check_release.outputs.release_id }}"
+          Invoke-RestMethod -Headers $headers -Uri $uri -Method Delete
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Release
         id: create_release
@@ -273,8 +303,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: "test-${{ github.run_number }}"
-          release_name: "Test Release ${{ github.run_number }}"
+          tag_name: "test-action"
+          release_name: "Test Release by Action"
           body: |
             This is an automated test release
           draft: false
