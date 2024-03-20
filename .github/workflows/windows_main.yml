@@ -69,7 +69,7 @@ jobs:
 
       - name: Clone ORTools repository
         if: steps.cache-ortools.outputs.cache-hit != 'true'
-        run: git clone -b main https://github.com/google/or-tools or-tools
+        run: git clone -b ${{ env.ortools_branch }} https://github.com/google/or-tools or-tools
         
       - name: Copy mod_sat_runner.cc to OR-Tools
         if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
