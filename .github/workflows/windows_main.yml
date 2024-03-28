@@ -1,6 +1,8 @@
 name: Complete Windows Build Workflow
 
-on: push
+on:
+  repository_dispatch:
+    types: [windows_build_trigger]
 
 jobs:
   build:
