@@ -46,6 +46,7 @@ jobs:
           $uri = "https://api.github.com/repos/google/or-tools/commits/$branch"
           $response = Invoke-RestMethod -Uri $uri
           echo "ORTOOLS_LATEST_SHA=$($response.sha)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "::set-output name=sha::$($response.sha)"
         shell: powershell
         env:
           ortools_branch: ${{ env.ortools_branch }}
@@ -55,7 +56,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: or-tools
-          key: or-tools-${{ runner.os }}-${{ env.ORTOOLS_LATEST_SHA }}
+          # key: or-tools-${{ runner.os }}-${{ env.ORTOOLS_LATEST_SHA }}
+          key: or-tools-${{ runner.os }}-${{ steps.ortools_sha.outputs.sha }}
           restore-keys: |
             or-tools-${{ runner.os }}-
 
