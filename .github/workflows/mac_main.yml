@@ -1,6 +1,8 @@
 name: Complete Mac Build Workflow
 
-on: push
+on:
+  repository_dispatch:
+    types: [build_trigger]
 
 jobs:
   build:
