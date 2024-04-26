@@ -2,7 +2,7 @@ name: Complete Windows Build Workflow
 
 on:
   repository_dispatch:
-    types: [windows_build_trigger]
+    types: [build_trigger]
 
 jobs:
   build:
