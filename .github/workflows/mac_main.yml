@@ -37,7 +37,9 @@ jobs:
         node-version: '20.11.0'
 
     - name: Install dependencies
-      run: npm install
+      run:
+        cd authenticator
+        npm install
 
     - name: Build Electron App
       run: |
@@ -48,12 +50,14 @@ jobs:
 
     - name: Prepare Installer Content
       run: |
+        BASE_PATH="${GITHUB_WORKSPACE}"
         mkdir -p SkedMacInstaller/usr/local/bin
         mkdir -p SkedMacInstaller/Applications
-        cp dist/mac/Authenticator-darwin-x64/Authenticator.app SkedMacInstaller/Applications/
-        cp main.js SkedMacInstaller/usr/local/bin/
-        cp com.aitkn.skedMacInstaller.plist SkedMacInstaller/Library/LaunchDaemons/
-        cp postinstall SkedMacInstaller/scripts/
+
+        cp "${BASE_PATH}/authenticator/dist/mac/Authenticator-darwin-x64/Authenticator.app" SkedMacInstaller/Applications/
+        cp "${BASE_PATH}/userServerMain/userServerMain.js" SkedMacInstaller/usr/local/bin/
+        cp "${BASE_PATH}/com.aitkn.skedMacInstaller.plist" SkedMacInstaller/Library/LaunchDaemons/
+        cp "${BASEPATH}/postinstall" SkedMacInstaller/scripts/
 
     - name: Build macOS Package
       run: |
