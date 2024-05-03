@@ -8,7 +8,59 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+
+
+    
+    - name: Get Config File
+      id: config
+      run: git clone https://github.com/JackChang0675/SkedAIConfig
+
+    - name: Read Config File
+      id: read_config
+      run: |
+        while IFS=: read -r key value; do
+          key=$(echo "$key" | xargs)
+          value=$(echo "$value" | xargs)
+          echo "$key=$value" >> $GITHUB_ENV
+        done < ./SkedAIConfig/mainConfig.txt
+      shell: bash
+
+
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '14'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build Electron App
+      run: |
+        npm install electron-packager -g
+        electron-packager . Authenticator --platform=darwin --arch=x64 --out=dist/mac
+
+
+
+    - name: Prepare Installer Content
+      run: |
+        mkdir -p SkedMacInstaller/usr/local/bin
+        mkdir -p SkedMacInstaller/Applications
+        cp dist/mac/Authenticator-darwin-x64/Authenticator.app SkedMacInstaller/Applications/
+        cp main.js SkedMacInstaller/usr/local/bin/
+        cp com.aitkn.skedMacInstaller.plist SkedMacInstaller/Library/LaunchDaemons/
+        cp postinstall SkedMacInstaller/scripts/
+
+    - name: Build macOS Package
+      run: |
+        pkgbuild --root SkedMacInstaller/ --identifier com.aitkn.skedMacInstaller --version 1.0 --scripts SkedMacInstaller/scripts/ --install-location / SkedMacInstaller-1.0.pkg
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: macOS-Installer
+        path: *.pkg
