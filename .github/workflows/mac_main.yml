@@ -55,10 +55,10 @@ jobs:
         mkdir -p SkedMacInstaller/usr/local/bin
         mkdir -p SkedMacInstaller/Applications
 
-        cp "${BASE_PATH}/authenticator/dist/mac/Authenticator-darwin-x64/Authenticator.app" SkedMacInstaller/Applications/
+        cp -R "${BASE_PATH}/authenticator/dist/mac/Authenticator-darwin-x64/Authenticator.app" SkedMacInstaller/Applications/
         cp "${BASE_PATH}/userServerMain/userServerMain.js" SkedMacInstaller/usr/local/bin/
         cp "${BASE_PATH}/mac/com.aitkn.skedMacInstaller.plist" SkedMacInstaller/Library/LaunchDaemons/
-        cp "${BASEPATH}/mac/postinstall" SkedMacInstaller/scripts/
+        cp "${BASE_PATH}/mac/postinstall" SkedMacInstaller/scripts/
 
     - name: Build macOS Package
       run: |
