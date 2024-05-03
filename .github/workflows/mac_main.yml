@@ -39,12 +39,17 @@ jobs:
     - name: Install dependencies
       run:
         cd authenticator
+        npm install electron-packager -g
         npm install
+    
+    - name: List installed modules
+      run: |
+        cd authenticator
+        ls node_modules
 
     - name: Build Authenticator
       run: |
         cd authenticator
-        npm install electron-packager -g
         electron-packager . Authenticator --platform=darwin --arch=x64 --out=dist/mac
 
 
