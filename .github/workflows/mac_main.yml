@@ -41,8 +41,9 @@ jobs:
         cd authenticator
         npm install
 
-    - name: Build Electron App
+    - name: Build Authenticator
       run: |
+        cd authenticator
         npm install electron-packager -g
         electron-packager . Authenticator --platform=darwin --arch=x64 --out=dist/mac
 
