@@ -85,10 +85,19 @@ jobs:
         run: |
           choco list --local-only | Select-String "make" || choco install make
       
-      - name: Install ZLIB
+      - name: Install vcpkg
         if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
         run: |
-          choco install zlib
+          git clone https://github.com/microsoft/vcpkg.git
+          cd vcpkg
+          .\bootstrap-vcpkg.bat
+        shell: powershell
+
+      - name: Install ZLIB with vcpkg
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
+        run: |
+          .\vcpkg\vcpkg.exe install zlib
+        shell: powershell
 
       - name: Setup MSVC environment for Visual Studio 2022
         if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
