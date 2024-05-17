@@ -77,7 +77,8 @@ jobs:
         
       - name: Copy mod_sat_runner.cc to OR-Tools
         if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
-        run: Copy-Item mod_sat_runner\mod_sat_runner.cc or-tools/examples/cpp
+        run: |
+          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
 
       - name: Ensure Make is installed
         if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
@@ -94,7 +95,10 @@ jobs:
         if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
         run: |
           cd or-tools
-          make build SOURCE=examples/cpp/mod_sat_runner.cc
+          mkdir build
+          cd build
+          cmake -G "Visual Studio 16 2019" -A x64 ..
+          cmake --build . --config Release --target mod_sat_runner
 
       - name: Upload compiled mod_sat_runner as artifact
         uses: actions/upload-artifact@v4
