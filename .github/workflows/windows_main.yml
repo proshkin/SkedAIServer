@@ -80,10 +80,15 @@ jobs:
         run: |
           choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
 
-      - name: Ensure Make is installed
+      - name: Ensure CMake is installed
         if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
         run: |
           choco list --local-only | Select-String "make" || choco install make
+      
+      - name: Install ZLIB
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
+        run: |
+          choco install zlib
 
       - name: Setup MSVC environment for Visual Studio 2022
         if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
