@@ -2,7 +2,7 @@ name: Complete Mac Build Workflow
 
 on:
   repository_dispatch:
-    types: [build_trigger]
+    types: [mac_build_trigger]
 
 jobs:
   build:
