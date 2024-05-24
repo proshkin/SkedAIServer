@@ -259,7 +259,7 @@ void copy_solution(const CpSolverResponse& r, std::vector<int>& indexes,
 }
 
 
-int Run() {
+int Mod_Run() {
   SatParameters parameters;
   if (absl::GetFlag(FLAGS_input).empty()) {
     LOG(FATAL) << "Please supply a data file with --input=";
@@ -375,5 +375,5 @@ int main(int argc, char** argv) {
   absl::InitializeLog();
   absl::SetProgramUsageMessage(kUsage);
   absl::ParseCommandLine(argc, argv);
-  return mod_operations_research::mod_sat::Run();
+  return mod_operations_research::mod_sat::Mod_Run();
 }
