@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.18)
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING
   "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel.")
 
-project(mod_sat_runner VERSION 1.0 LANGUAGES CXX)
+project(ModSatRunner VERSION 1.0 LANGUAGES CXX)
 message(STATUS "${PROJECT_NAME} version: ${PROJECT_VERSION}")
 
 if(MSVC)
