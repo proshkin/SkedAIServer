@@ -25,13 +25,6 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           toolset: 14.3
-      
-      - name: Clean build directory
-        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
-        run: |
-          cd mod_sat_runner
-          Remove-Item -Recurse -Force .\build
-        shell: powershell
 
       - name: Build OR-Tools
         if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
