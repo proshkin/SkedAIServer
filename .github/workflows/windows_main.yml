@@ -79,22 +79,30 @@ jobs:
         if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
         run: Copy-Item mod_sat_runner\mod_sat_runner.cc or-tools/examples/cpp
 
-      - name: Ensure Make is installed
+      - name: Ensure CMake is installed
         if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
         run: |
-          choco list --local-only | Select-String "make" || choco install make
+          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
 
       - name: Setup MSVC environment for Visual Studio 2022
         if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
         uses: ilammy/msvc-dev-cmd@v1
         with:
           toolset: 14.3
-
-      - name: Build mod_sat_runner
+      
+      - name: Clean build directory
         if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
         run: |
-          cd or-tools
-          make build SOURCE=examples/cpp/mod_sat_runner.cc
+          cd mod_sat_runner
+          Remove-Item -Recurse -Force .\build
+        shell: powershell
+
+      - name: Build OR-Tools
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
+        run: |
+          cd mod_sat_runner
+          cmake -S. -Bbuild
+          cmake --build build -v
 
       - name: Upload compiled mod_sat_runner as artifact
         uses: actions/upload-artifact@v4
