@@ -79,8 +79,8 @@ ABSL_FLAG(int, print_wait, 1000,
 ABSL_FLAG(int, objective_print_wait, 1000,
           "Alters the wait between which the current objective is printed.");
 
-namespace operations_research {
-namespace sat {
+namespace mod_operations_research {
+namespace mod_sat {
 namespace {
 
 auto startTime = std::chrono::steady_clock::now();
@@ -375,5 +375,5 @@ int main(int argc, char** argv) {
   absl::InitializeLog();
   absl::SetProgramUsageMessage(kUsage);
   absl::ParseCommandLine(argc, argv);
-  return operations_research::sat::Run();
+  return mod_operations_research::mod_sat::Run();
 }
