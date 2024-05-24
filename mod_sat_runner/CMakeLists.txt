@@ -98,7 +98,7 @@ set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
 include(CTest)
 include(GNUInstallDirs)
 
-add_subdirectory(BasicExample)
+add_subdirectory(ModSatRunner)
 
 # Install
 install(EXPORT ${PROJECT_NAME}Targets
