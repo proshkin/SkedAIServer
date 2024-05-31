@@ -1,0 +1,30 @@
+name: Build Installer with Inno Setup
+
+on:
+  push:
+    paths:
+      - 'SkedAIUserServerInstallerSilent.iss'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: 'SkedAIServer'
+      
+      - name: Install Inno Setup
+        run: |
+          choco install innosetup
+
+      - name: Compile Installer
+        run: |
+          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" SkedAIServer/SkedAIUserServerInstallerSilent.iss
+        shell: cmd
+        
+      - name: Upload Installer as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer
+          path: Output\SkedAIUserServerInstaller.exe

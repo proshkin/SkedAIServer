@@ -2,14 +2,126 @@ const DEBUG = true;
 
 const chokidar = require('chokidar');
 const os = require('os');
-const {spawn} = require('child_process');
+const {spawn, exec} = require('child_process');
 const {createClient} = require('@supabase/supabase-js');
 const {v4: uuidv4} = require('uuid');
 const fs = require("fs");
 const path = require("path");
+const axios = require("axios");
+const cron = require('node-cron');
+const https = require('https');
+const {randomUUID} = require("node:crypto");
+
+const supabase = createClient('https://jfcurpgmlzlceotuthat.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmY3VycGdtbHpsY2VvdHV0aGF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDUwODQ4ODksImV4cCI6MjAyMDY2MDg4OX0.7rAa3V9obXlEhewdRah4unY0apsEPHWEYXk5OwKYkLI');
 
 // Get the correct path for appdata in the current OS
 const appDataPath = process.env.APPDATA || (os.platform() == 'darwin' ? path.join(process.env.HOME, 'Library', 'Application Support') : '/var/local');
+const nodeFolderPath = path.join(appDataPath, 'Node Server');
+
+const defaultUserID = "38a93bd6-ec88-4b66-a17c-c43f4fc8bcc5";
+let userID = "38a93bd6-ec88-4b66-a17c-c43f4fc8bcc5";
+
+async function handleUpdate(installerUrl, installerPath) {
+    const writer = fs.createWriteStream(installerPath);
+    const downloadResponse = await axios({
+        url: installerUrl,
+        method: 'GET',
+        responseType: 'stream'
+    });
+
+    downloadResponse.data.pipe(writer);
+
+    await new Promise((resolve, reject) => {
+        writer.on('finish', () => {
+            writer.close();  // Close the stream
+        });
+        writer.on('close', resolve);  // Resolve the promise on stream close
+        writer.on('error', (error) => {
+            console.error(`Error writing file: ${error}`);
+            reject(error);
+        });
+    });
+
+    console.log('Installer downloaded, starting the update process...');
+
+    // Execute the installer
+    exec(`"${installerPath}" /VERYSILENT`, (err) => {
+        if (err) {
+            console.error(`Error executing installer: ${err}`);
+            return;
+        }
+
+        // Terminate the service
+        process.exit(0);
+    });
+}
+
+async function checkIfUpdate() {
+    try {
+        console.log("cur user: " + userID);
+        const filePath = path.join(nodeFolderPath, 'version.txt');
+        const curVersion = fs.readFileSync(filePath, 'utf8');
+        let {data: server, error} = await supabase
+            .from('servers')
+            .select('owner_id, version')
+            .eq('owner_id', userID)
+
+        if (server.length > 0) {
+            const expectedVersion = server[0].version;
+            if (expectedVersion != null && expectedVersion != curVersion) {
+                console.log("update required!");
+                await getUpdate(expectedVersion)
+            }
+        }
+    }
+    catch {
+        console.error("error checking for update");
+    }
+}
+
+async function getUpdate(versionNumber) {
+    try {
+        const response = await axios.get('https://api.github.com/repos/proshkin/SkedAIServer/releases/tags/' + versionNumber);
+        const installerUrl = response.data.assets[0].browser_download_url; // Assuming the installer is the first asset
+
+        const versionFilePath = path.join(nodeFolderPath, 'version.txt');
+        const filename = path.basename(new URL(installerUrl).pathname);
+        const downloadPath = path.join(nodeFolderPath, filename);
+        console.log("Update found!");
+        handleUpdate(installerUrl, downloadPath)
+    } catch (error) {
+        console.error('Error updating:', error);
+    }
+}
+
+async function checkForUpdates() {
+    try {
+        const response = await axios.get('https://api.github.com/repos/proshkin/SkedAIServer/releases/latest');
+        // const response = await httpsGet('https://api.github.com/repos/proshkin/SkedAIServer/releases/latest');
+        const latestVersion = response.data.tag_name;
+        const installerUrl = response.data.assets[0].browser_download_url; // Assuming the installer is the first asset
+
+        const versionFilePath = path.join(nodeFolderPath, 'version.txt');
+        const currentVersion = fs.readFileSync(versionFilePath, 'utf8');
+        // Compare with current version
+        if (latestVersion !== currentVersion) {
+            console.log('New version available:', latestVersion);
+            console.log('URL', installerUrl);
+            const filename = path.basename(new URL(installerUrl).pathname);
+            const downloadPath = path.join(nodeFolderPath, filename);
+
+
+            handleUpdate(installerUrl, downloadPath);
+
+        } else {
+            console.log('No updates found');
+        }
+    } catch (error) {
+        console.error('Error checking for updates:', error);
+    }
+}
+
+
 
 // Define the path of the file to watch
 const tokenFilePath = path.join(appDataPath, 'Node Server', 'token.txt');
@@ -25,19 +137,40 @@ watcher
   .on('add', path => handleFileChange(path))
   .on('change', path => handleFileChange(path));
 
+supabase.auth.onAuthStateChange((event, session) => {
+    if (event == "TOKEN_REFRESHED") {
+        writeRefreshedTokens(session.access_token, session.refresh_token);
+    }
+    // console.log(event, session);
+})
+
+
+// checkForUpdates();
+cron.schedule('0 21 * * *', () => {
+    console.log('Running scheduled update check...');
+    checkIfUpdate();
+});
+
 async function handleFileChange(path) {
     // stopPythonScript;
     console.log(`File ${path} has been added or changed`);
 
     try {
         const data = fs.readFileSync(path, 'utf8');
+        if (data.length === 0) {
+            console.log(`File ${path} is empty. Stopping the service.`);
+            process.exit(0);
+        }
+
         let lastPeriodIndex = data.lastIndexOf('.');
         let accessToken = data.substring(0, lastPeriodIndex);
         let refreshToken = data.substring(lastPeriodIndex + 1);
-        console.log("Access Token: " + accessToken + "\nRefresh Token: " + refreshToken);
+        // console.log("Access Token: " + accessToken + "\nRefresh Token: " + refreshToken);
 
         try {
           let curUser = await authenticateUser(accessToken, refreshToken, supabase);
+          checkIfUpdate();
+          addServerIfNewUser();
           return curUser;
         } catch (error) {
           console.error('Authentication error:', error);
@@ -49,24 +182,80 @@ async function handleFileChange(path) {
 
 }
 
-let userID = "38a93bd6-ec88-4b66-a17c-c43f4fc8bcc5";
-
-const supabase = createClient('https://jfcurpgmlzlceotuthat.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmY3VycGdtbHpsY2VvdHV0aGF0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY4MzUwMjY5NiwiZXhwIjoxOTk5MDc4Njk2fQ.qrpXSLzhYTMnjCxXWonjCScKthRvS4vJQMtEjvzcBy4');
-
 async function authenticateUser(accessToken, refreshToken) {
     try {
-        const session = await supabase.auth.setSession({
+        const {session, error} = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
         });
-        const user = session.data.user;
+        const user = session.user;
         userID = user.id;
-        console.log(user);
+
         return user;
     } catch (error) {
         console.error(error);
     }
 }
+
+const addServerIfNewUser = async (localServerState) => {
+    macAddress = localServerState.macAddress;
+    ipAddress = localServerState.ipAddress;
+    cpuCores = localServerState.cpuCores;
+
+    const serverFilePath = path.join(nodeFolderPath, 'servers.txt');
+    const prevServer = fs.readFileSync(serverFilePath, 'utf8');
+
+    let {data: server, error} = await supabase
+        .from('servers')
+        .select('server_id')
+        .eq('server_id', prevServer)
+
+    if (error) {
+        console.error('Error fetching servers:', error);
+        return;
+    }
+
+    if (!server || server.length === 0) {
+        let {error} = await supabase
+            .from('servers')
+            .insert([{
+                server_id: randomUUID(),
+                mac_address: macAddress,
+                cpu_cores: cpuCores,
+                ip_address: ipAddress,
+                is_user_server: true,
+                owner_id: userID,
+                version: 0.1
+            }]);
+
+        if (error) {
+            console.error('Error inserting server:', error);
+        }
+    }
+}
+
+
+async function writeRefreshedTokens(accessToken, refreshToken) {
+    try {
+        // ensure the directory exists
+        // await fs.promises.mkdir(appDataPath, { recursive: true });
+        const filePath = path.join(nodeFolderPath, 'token.txt');
+        await fs.promises.writeFile(filePath, accessToken + '.' + refreshToken, {
+            flag: 'w',
+        });
+        const filePath2 = path.join(appDataPath, 'cookie.txt');
+        const content = fs.readFileSync(filePath2, { encoding: 'utf8' });
+        let data = JSON.parse(content);
+        data.access_token = accessToken;
+        data.refresh_token = refreshToken;
+        await fs.promises.writeFile(filePath2, JSON.stringify(data, null), {
+            flag: 'w',
+        });
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 
 const localServerState = {
     macAddress: null,

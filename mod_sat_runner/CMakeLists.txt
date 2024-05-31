@@ -1,9 +1,10 @@
-# This file is just an orchestration
 cmake_minimum_required(VERSION 3.18)
 
-option(CMAKE_EXPORT_COMPILE_COMMANDS "Export compile command" OFF)
+# Set default build type to Release if empty.
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING
+  "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel.")
 
-project(mod_sat_runner VERSION 1.0 LANGUAGES CXX)
+project(ModSatRunner VERSION 1.0 LANGUAGES CXX)
 message(STATUS "${PROJECT_NAME} version: ${PROJECT_VERSION}")
 #message(STATUS "major: ${PROJECT_VERSION_MAJOR}")
 #message(STATUS "minor: ${PROJECT_VERSION_MINOR}")
@@ -16,7 +17,9 @@ else()
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH True)
+
+# Set max os target version.
+set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
 
 # Default Build Type to be Release
 get_property(isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -45,11 +48,11 @@ if(UNIX)
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
   # for multi-config build system (e.g. Xcode, Ninja Multi-Config)
-  foreach(OutputConfig IN LISTS CMAKE_CONFIGURATION_TYPES)
-    string(TOUPPER ${OutputConfig} OUTPUTCONFIG)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/${OutputConfig}/${CMAKE_INSTALL_LIBDIR})
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/${OutputConfig}/${CMAKE_INSTALL_LIBDIR})
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/${OutputConfig}/${CMAKE_INSTALL_BINDIR})
+  foreach(OUTPUTCONFIG IN LISTS CMAKE_CONFIGURATION_TYPES)
+    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG}/${CMAKE_INSTALL_LIBDIR})
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG}/${CMAKE_INSTALL_LIBDIR})
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG}/${CMAKE_INSTALL_BINDIR})
   endforeach()
 else()
   # Currently Only support static build for windows
@@ -58,29 +61,64 @@ else()
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
   # for multi-config builds (e.g. msvc)
-  foreach(OutputConfig IN LISTS CMAKE_CONFIGURATION_TYPES)
-    string(TOUPPER ${OutputConfig} OUTPUTCONFIG)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/${OutputConfig}/${CMAKE_INSTALL_BINDIR})
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/${OutputConfig}/${CMAKE_INSTALL_BINDIR})
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/${OutputConfig}/${CMAKE_INSTALL_BINDIR})
+  foreach(OUTPUTCONFIG IN LISTS CMAKE_CONFIGURATION_TYPES)
+    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG}/${CMAKE_INSTALL_BINDIR})
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG}/${CMAKE_INSTALL_BINDIR})
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG}/${CMAKE_INSTALL_BINDIR})
   endforeach()
 endif()
 
-find_package(ortools REQUIRED CONFIG)
+if(MSVC AND BUILD_SHARED_LIBS)
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
 
-add_executable(${PROJECT_NAME} mod_sat_runner.cc)
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_compile_features(${PROJECT_NAME} PUBLIC
-  $<IF:$<CXX_COMPILER_ID:MSVC>,cxx_std_20,cxx_std_17>)
-target_link_libraries(${PROJECT_NAME} PRIVATE ortools::ortools)
+if(UNIX)
+  option(BUILD_SHARED_LIBS "Build shared libraries(.so)." ON)
+else()
+  # only support for static build on Windows.
+  set(BUILD_SHARED_LIBS OFF)
+endif()
+
+if(BUILD_SHARED_LIBS)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
+
+include(FetchContent)
+FetchContent_Declare(
+  ortools
+  GIT_REPOSITORY https://github.com/google/or-tools.git
+  GIT_TAG        v9.10)
+set(BUILD_DEPS ON)
+set(BUILD_DOC OFF)
+set(BUILD_SAMPLES OFF)
+set(BUILD_EXAMPLES OFF)
+FetchContent_MakeAvailable(ortools)
 
 # Disable CTest targets
 set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
 include(CTest)
-if(BUILD_TESTING)
-  add_test(NAME test_${PROJECT_NAME} COMMAND ${PROJECT_NAME} )
-endif()
-
-# Install rules
 include(GNUInstallDirs)
-install(TARGETS ${PROJECT_NAME})
+
+add_subdirectory(ModSatRunner)
+
+# Install
+install(EXPORT ${PROJECT_NAME}Targets
+  NAMESPACE ${PROJECT_NAME}::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+  COMPONENT Devel)
+include(CMakePackageConfigHelpers)
+configure_package_config_file(cmake/${PROJECT_NAME}Config.cmake.in
+  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+  INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+  NO_SET_AND_CHECK_MACRO
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO)
+write_basic_package_version_file(
+  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+  COMPATIBILITY SameMajorVersion)
+install(
+  FILES
+  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+  COMPONENT Devel)

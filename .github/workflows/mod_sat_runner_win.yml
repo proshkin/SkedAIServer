@@ -1,0 +1,54 @@
+name: Build mod_sat_runner for Windows
+
+on:
+  push:
+    paths:
+      - 'SkedAIServer/mod_sat_runner/mod_sat_runner.cc'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Cache OR-Tools Build
+        id: cache-or-tools
+        uses: actions/cache@v4
+        with:
+          path: or-tools
+          key: or-tools-${{ runner.os }}-${{ hashFiles('SkedAIServer/mod_sat_runner/mod_sat_runner.cc', '**/CMakeLists.txt', '**/*.h') }}
+          restore-keys: |
+            or-tools-${{ runner.os }}-
+
+      - name: Checkout SkedAIServer repository
+        uses: actions/checkout@v4
+        with:
+          path: 'SkedAIServer'
+
+      - name: Clone ORTools repository
+        if: steps.cache-or-tools.outputs.cache-hit != 'true'
+        run: git clone -b main https://github.com/google/or-tools or-tools
+        
+      - name: Copy mod_sat_runner.cc to OR-Tools
+        run: Copy-Item SkedAIServer\mod_sat_runner\mod_sat_runner.cc or-tools/examples\cpp
+
+      - name: Ensure Make is installed
+        run: |
+          $makeInstalled = choco list --local-only | Select-String "make"
+          if (-not $makeInstalled) {
+            choco install make
+          }
+
+      - name: Setup MSVC environment for Visual Studio 2022
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          toolset: 14.3
+
+      - name: Build mod_sat_runner
+        run: |
+          cd or-tools
+          make build SOURCE=examples/cpp/mod_sat_runner.cc
+
+      - name: Upload compiled binary as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mod_sat_runner-binary
+          path: or-tools/temp_cpp/mod_sat_runner/build/Release/bin/mod_sat_runner.exe

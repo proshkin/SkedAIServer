@@ -1,0 +1,32 @@
+name: Build mod_sat_runner for macOS
+
+on:
+  push:
+    paths:
+      - 'SkedAIServer/mod_sat_runner/mod_sat_runner.cc'
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout SkedAIServer repository
+        uses: actions/checkout@v4
+        with:
+          path: 'SkedAIServer'
+      
+      - name: Clone OR-Tools repository
+        run: git clone -b main https://github.com/google/or-tools or-tools
+        
+      - name: Copy mod_sat_runner.cc to OR-Tools
+        run: cp SkedAIServer/mod_sat_runner/mod_sat_runner.cc or-tools/examples/cpp
+      
+      - name: Build mod_sat_runner
+        run: |
+          cd or-tools
+          make build SOURCE=examples/cpp/mod_sat_runner.cc
+          
+      - name: Upload compiled binary as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mod_sat_runner-binary
+          path: or-tools/temp_cpp/mod_sat_runner/build/bin/mod_sat_runner

@@ -1,0 +1,34 @@
+name: Complete Windows Build Workflow
+
+on:
+  repository_dispatch:
+    types: [windows_build_trigger]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+
+
+      - name: Ensure CMake is installed
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
+        run: |
+          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
+
+      - name: Setup MSVC environment for Visual Studio 2022
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          toolset: 14.3
+
+      - name: Build OR-Tools
+        if: env.MOD_SAT_RUNNER_CHANGED == 'true' || steps.cache-ortools.outputs.cache-hit != 'true' || steps.cache-mod-sat-runner.outputs.cache-hit != 'true'
+        run: |
+          cd mod_sat_runner
+          cmake -S. -Bbuild
+          cmake --build build -v
