@@ -79,7 +79,7 @@ ABSL_FLAG(int, objective_print_wait, 1000,
 
 namespace operations_research {
 namespace sat {
-namespace {
+namespace mod {
 
 auto startTime = std::chrono::steady_clock::now();
 std::mutex mtx;
@@ -373,5 +373,5 @@ int main(int argc, char** argv) {
   absl::InitializeLog();
   absl::SetProgramUsageMessage(kUsage);
   absl::ParseCommandLine(argc, argv);
-  return operations_research::sat::Run();
+  return operations_research::sat::mod::Run();
 }
