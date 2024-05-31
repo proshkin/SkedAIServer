@@ -79,7 +79,7 @@ ABSL_FLAG(int, print_wait, 1000,
 ABSL_FLAG(int, objective_print_wait, 1000,
           "Alters the wait between which the current objective is printed.");
 
-namespace mod_operations_research {
+namespace operations_research {
 namespace mod_sat {
 namespace {
 
@@ -375,5 +375,5 @@ int main(int argc, char** argv) {
   absl::InitializeLog();
   absl::SetProgramUsageMessage(kUsage);
   absl::ParseCommandLine(argc, argv);
-  return mod_operations_research::mod_sat::Mod_Run();
+  return operations_research::mod_sat::Mod_Run();
 }
